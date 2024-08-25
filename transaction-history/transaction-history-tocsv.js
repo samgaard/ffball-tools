@@ -2,7 +2,7 @@ function cleanValue(value) {
     var result;
 
     // remove any html
-    result = value.replace(/(<([^>]+)>)/ig, "");
+    result = value.replace(/(<([^>]+)>)|,/ig, "");
     // remove some other uneeded strings
     result = value.replace('No new player Notes', "");
 
