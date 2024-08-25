@@ -1,31 +1,50 @@
+function cleanValue(value) {
+    var result;
+
+    // remove any html
+    result = value.replace(/(<([^>]+)>)/ig, "");
+    // remove some other uneeded strings
+    result = value.replace('No new player Notes', "");
+
+    return result || value;
+}
+
 // transactions scraper
-var table = document.querySelectorAll('.data-table table');
+var table = document.querySelectorAll('#transactions .Table');
 var results = [];
 for (var i = 0, row; row = table[0].rows[i]; i++) {
     results[i] = [];
-    for (var j = 0, col; col = row.cells[j]; j++) {
+    for (var j = 1, col; col = row.cells[j]; j++) {
         // get the value of the table cell
         let value = col.innerHTML;
 
         // special handing
         if (j === 1) {
-            var playerName = col.querySelectorAll('.ysf-player-name');
+            var playerName = col.querySelectorAll('.Pbot-xs a');
             if (playerName[0]) {
                 value = playerName[0].innerText;
+                value = cleanValue(value)
+                results[i].push(value)
+                var price = col.querySelectorAll('h6.F-shade.Fz-xxs');
+                if (price[0]) {
+                    value = price[0].innerText;
+                }
+            }
+        } else {
+            var teamName = col.querySelectorAll('.Tst-team-name');
+            if (teamName[0]) {
+                value = teamName[0].innerText;
             }
         }
 
-        // remove any html
-        value = value.replace(/(<([^>]+)>)/ig, "");
-        // remove some other uneeded strings
-        value = value.replace('No new player Notes', "");
+        value = cleanValue(value)
         // add to results
         results[i].push(value);
     }
 }
 
 // helper function to create and export a csv
-function exportToCsv(filename, rows) {
+function exportToCsv(rows) {
     var processRow = function(row) {
         var finalVal = '';
         for (var j = 0; j < row.length; j++) {
@@ -48,27 +67,7 @@ function exportToCsv(filename, rows) {
     for (var i = 0; i < rows.length; i++) {
         csvFile += processRow(rows[i]);
     }
-
-    var blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
-    if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, filename);
-    } else {
-        var link = document.createElement("a");
-        if (link.download !== undefined) {
-            var url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
+    console.log(csvFile)
 }
 
-var d = new Date();
-var n = d.toDateString();
-var m = d.getMilliseconds();
-
-// create a unique file name
-exportToCsv(n + '-' + m + '.csv', results);
+exportToCsv(results);
